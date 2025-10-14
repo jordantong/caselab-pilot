@@ -98,7 +98,7 @@ if "last" not in st.session_state:
 
 remaining = max(0, MAX_REQUESTS - st.session_state['count'])
 render_counters('top', remaining, MAX_REQUESTS, daily_remaining=remaining_total if 'remaining_total' in locals() else None)
-: {remaining} / {MAX_REQUESTS}** · **Daily remaining: {remaining_total}**", icon="⏳")
+: {remaining} / {MAX_REQUESTS}** | **Daily remaining: {remaining_total}**", icon="⏳")
 else:
     st.info(f"**Prompts remaining (this session): {remaining} / {MAX_REQUESTS}**", icon="⏳")
 
