@@ -1,5 +1,5 @@
 # clipboard_client_chat.py
-# Wisconsin Case Lab interactive client simulation
+# Wisconsin Case Lab interactive client simulation (no sidebar settings + printable transcript)
 
 import os, re, time, json, sqlite3, datetime as dt, unicodedata
 from typing import List, Dict
@@ -131,6 +131,43 @@ def call_openai_chat(messages: List[Dict[str, str]], model_name: str, temperatur
     )
     return resp.choices[0].message.content
 
+def normalize_text(text: str) -> str:
+    return unicodedata.normalize("NFKC", text)
+
+def build_printable_html(title: str, messages: List[Dict[str, str]]) -> str:
+    # Build a simple, printer-friendly HTML transcript (excluding the system prompt)
+    rows = []
+    for m in messages:
+        if m.get("role") == "system":
+            continue
+        role = "Student" if m.get("role") == "user" else "Client"
+        content = normalize_text(m.get("content", "")).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        rows.append(f"<div class='msg {m.get('role')}'><div class='role'>{role}</div><div class='bubble'>{content}</div></div>")
+    body = "\n".join(rows)
+    styles = """
+    <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    h1 { margin-bottom: 6px; }
+    .sub { color: #555; margin-bottom: 18px; }
+    .msg { margin: 10px 0; }
+    .role { font-weight: bold; margin-bottom: 4px; }
+    .bubble { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; }
+    .user .bubble { background: #eef6ff; border-color: #cde3ff; }
+    .assistant .bubble { background: #f8f8f8; }
+    @media print {
+      .no-print { display: none; }
+      body { margin: 0.5in; }
+    }
+    </style>
+    """
+    date_str = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
+    html = f"<!DOCTYPE html><html><head><meta charset='utf-8'><title>{title} Transcript</title>{styles}</head><body>"
+    html += f"<h1>{title} – Conversation</h1><div class='sub'>Printed {date_str}</div>"
+    html += body
+    html += "<div class='no-print' style='margin-top:24px'><button onclick='window.print()'>Print</button></div>"
+    html += "</body></html>"
+    return html
+
 st.set_page_config(page_title=APP_TITLE, layout="centered")
 st.title(APP_TITLE)
 
@@ -162,18 +199,10 @@ else:
             st.info("This app requires an access code.")
             st.stop()
 
+# Intro
 st.markdown(INTRO_MD)
 
-with st.sidebar:
-    st.subheader("Settings")
-    model = st.selectbox("Model", [MODEL_DEFAULT, "gpt-4o", "gpt-4.1-mini"], index=0)
-    temperature = st.slider("Temperature", min_value=0.0, max_value=1.0, value=TEMPERATURE_DEFAULT, step=0.05)
-    st.markdown("---")
-    if st.button("Reset conversation", type="primary", use_container_width=True):
-        st.session_state.clear(); st.experimental_rerun()
-    st.markdown("---")
-    st.caption("Ask targeted, decision-relevant questions.")
-
+# Initialize state
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "system", "content": SYSTEM_PROMPT}]
 if "request_count" not in st.session_state:
@@ -181,8 +210,32 @@ if "request_count" not in st.session_state:
 if "last_time" not in st.session_state:
     st.session_state["last_time"] = 0.0
 
+# Main controls (no sidebar)
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("Reset conversation", use_container_width=True):
+        st.session_state.clear(); st.experimental_rerun()
+with col2:
+    # Build transcript and offer as a download
+    printable_html = build_printable_html(APP_TITLE, st.session_state["messages"])
+    st.download_button(
+        label="Download printable transcript (HTML)",
+        data=printable_html,
+        file_name="wisconsin_case_lab_transcript.html",
+        mime="text/html",
+        use_container_width=True
+    )
+
+# Chat input
 disabled_input = (st.session_state["request_count"] >= MAX_REQUESTS) or (per_student_mode and remaining_total is not None and remaining_total <= 0)
 user_text = st.chat_input("Ask your client a question...", disabled=disabled_input)
+
+def call_and_append(user_text: str):
+    st.session_state["messages"].append({"role": "user", "content": user_text})
+    reply = call_openai_chat(st.session_state["messages"], MODEL_DEFAULT, TEMPERATURE_DEFAULT)
+    st.session_state["messages"].append({"role": "assistant", "content": reply})
+    st.session_state["request_count"] += 1
+    st.session_state["last_time"] = time.time()
 
 if user_text:
     now = time.time()
@@ -197,25 +250,29 @@ if user_text:
     elif per_student_mode and remaining_total is not None and remaining_total <= 0:
         st.session_state["messages"].append({"role": "assistant", "content": "You have reached your daily total. Please try again tomorrow or contact your instructor."})
     else:
-        st.session_state["messages"].append({"role": "user", "content": user_text})
-        reply = call_openai_chat(st.session_state["messages"], model, temperature)
-        st.session_state["messages"].append({"role": "assistant", "content": reply})
-        st.session_state["request_count"] += 1
-        st.session_state["last_time"] = now
+        call_and_append(user_text)
         if per_student_mode and remaining_total is not None:
             db_inc_count(entered, today)
 
-def normalize_text(text: str) -> str:
-    return unicodedata.normalize("NFKC", text)
-
+# Display history
 for msg in st.session_state["messages"]:
     if msg["role"] == "system":
         continue
     with st.chat_message("user" if msg["role"] == "user" else "assistant"):
         st.markdown(normalize_text(msg["content"]))
 
+# Bottom counters only
 remaining_session_bottom = max(0, MAX_REQUESTS - st.session_state["request_count"])
-render_counters(remaining_session_bottom, MAX_REQUESTS, daily_remaining=remaining_total if per_student_mode else None)
+def render_counters_bottom():
+    used = MAX_REQUESTS - remaining_session_bottom
+    pct = 0 if MAX_REQUESTS == 0 else int(100 * used / MAX_REQUESTS)
+    if per_student_mode and remaining_total is not None:
+        st.info(f"Prompts remaining (this session): {remaining_session_bottom} / {MAX_REQUESTS} | Daily remaining: {remaining_total}")
+    else:
+        st.info(f"Prompts remaining (this session): {remaining_session_bottom} / {MAX_REQUESTS}")
+    st.progress(pct, text=f"{remaining_session_bottom} of {MAX_REQUESTS} prompts remaining")
+
+render_counters_bottom()
 
 st.markdown("---")
 st.caption("Tip: Be specific. Avoid asking for everything. Probe particular levers and metrics.")
