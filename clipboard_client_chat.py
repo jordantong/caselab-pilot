@@ -26,7 +26,7 @@ from openai import OpenAI
 # Config
 # ----------------------
 APP_TITLE = "Wisconsin Case Lab"
-MODEL_DEFAULT = "gpt-4o-mini"
+MODEL_DEFAULT = "gpt-5-mini"
 MAX_CONTEXT_MESSAGES = 30
 TEMPERATURE_DEFAULT = 0.2
 MAX_REQUESTS = 10  # session cap
@@ -216,9 +216,6 @@ if "request_count" not in st.session_state:
 if "last_time" not in st.session_state:
     st.session_state["last_time"] = 0.0
 
-# Top counters
-remaining_session = max(0, MAX_REQUESTS - st.session_state["request_count"])
-render_counters(remaining_session, MAX_REQUESTS, daily_remaining=remaining_total if per_student_mode else None)
 
 # Input handling FIRST
 disabled_input = (st.session_state["request_count"] >= MAX_REQUESTS) or (per_student_mode and remaining_total is not None and remaining_total <= 0)
