@@ -1,5 +1,5 @@
 # clipboard_client_chat.py
-# Wisconsin Case Lab interactive client simulation (no sidebar settings + printable transcript)
+# Wisconsin Case Lab interactive client simulation (no sidebar + printable transcript + Option A reset)
 
 import os, re, time, json, sqlite3, datetime as dt, unicodedata
 from typing import List, Dict
@@ -135,7 +135,6 @@ def normalize_text(text: str) -> str:
     return unicodedata.normalize("NFKC", text)
 
 def build_printable_html(title: str, messages: List[Dict[str, str]]) -> str:
-    # Build a simple, printer-friendly HTML transcript (excluding the system prompt)
     rows = []
     for m in messages:
         if m.get("role") == "system":
@@ -214,9 +213,10 @@ if "last_time" not in st.session_state:
 col1, col2 = st.columns(2)
 with col1:
     if st.button("Reset conversation", use_container_width=True):
-        st.session_state.clear(); st.experimental_rerun()
+        # Option A: full reset
+        st.session_state.clear()
+        st.rerun()
 with col2:
-    # Build transcript and offer as a download
     printable_html = build_printable_html(APP_TITLE, st.session_state["messages"])
     st.download_button(
         label="Download printable transcript (HTML)",
