@@ -1,37 +1,17 @@
 # clipboard_client_chat.py
-# Streamlit chatbot for Clipboard client case (ASCII-only)
-# Features:
-# - Title: Wisconsin Case Lab
-# - MAX_REQUESTS = 10
-# - Intro text at the top
-# - Full chat history in order (user then assistant)
-# - Prompts remaining counters + progress bars at top and bottom
-# - Access code or per-student quotas (CODES_JSON) supported
-# - Simple anti-spam throttle
-# - Uses OpenAI Chat Completions API
-#
-# Secrets to set in Streamlit:
-# OPENAI_API_KEY = "sk-..."
-# ACCESS_CODE = "classcode"                      (optional if using CODES_JSON)
-# CODES_JSON = "{\"alice\": 40, \"bob\": 40}"    (optional; if present, overrides ACCESS_CODE)
-# MIN_SECONDS_BETWEEN_CALLS = 3.0
-# DAILY_RESET = 1
+# Wisconsin Case Lab interactive client simulation
 
-import os, re, time, json, sqlite3, datetime as dt
+import os, re, time, json, sqlite3, datetime as dt, unicodedata
 from typing import List, Dict
 import streamlit as st
 from openai import OpenAI
 
-# ----------------------
-# Config
-# ----------------------
 APP_TITLE = "Wisconsin Case Lab"
 MODEL_DEFAULT = "gpt-4o-mini"
 MAX_CONTEXT_MESSAGES = 30
 TEMPERATURE_DEFAULT = 0.2
-MAX_REQUESTS = 10  # session cap
+MAX_REQUESTS = 10
 
-# Secrets / env
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", st.secrets.get("OPENAI_API_KEY", ""))
 ACCESS_CODE_SECRET = st.secrets.get("ACCESS_CODE", os.getenv("ACCESS_CODE", ""))
 CODES_JSON = st.secrets.get("CODES_JSON", os.getenv("CODES_JSON", ""))
@@ -40,10 +20,16 @@ DAILY_RESET = bool(int(st.secrets.get("DAILY_RESET", os.getenv("DAILY_RESET", "1
 
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
-# ----------------------
-# Case info + system prompt
-# ----------------------
-CASE_INFO = r"""
+INTRO_MD = """
+### Case Overview (Read First)
+You are consulting for a startup called Clipboard, which operates a two-sided marketplace similar to ride-sharing platforms. The company is launching a new city and wants guidance on pricing and marketplace balance for the first year.
+
+Your objective: Develop recommendations to improve marketplace performance and overall profitability.
+
+The client has additional data and context, but will only provide it in response to thoughtful, targeted questions. Ask good questions to uncover the key information you will need.
+"""
+
+CASE_INFO = """
 Clipboard's marketplace users book a transaction in the future, similar to ride scheduling.
 Pretend you are the pricing product manager for Lyft's ride-scheduling feature, launching Toledo, Ohio.
 Prevailing rider price for airport <-> downtown (one way) is $25. Prevailing driver wage is $19.
@@ -64,7 +50,7 @@ Experiment:
 Reducing Lyft's take from $6 per ride to $3 per ride increased match rate from 60 percent to about 93 percent.
 
 Goal:
-Maximize net revenue (rider payment minus driver payout) for this route over the next 12 months. You cannot charge riders more than $25. The lever is how much you pay drivers per trip (i.e., Lyft's take).
+Maximize net revenue (rider payment minus driver payout) for this route over the next 12 months. You cannot charge riders more than $25. The lever is how much you pay drivers per trip (adjusting take rate).
 """
 
 SYSTEM_PROMPT = f"""
@@ -87,16 +73,6 @@ CASE_INFO (authoritative source starts below):
 ---
 """
 
-INTRO_MD = """
-### Case Overview (Read First)
-
-You are consulting for a startup called Clipboard, which operates a two-sided marketplace similar to ride-sharing platforms. The company is launching a new city and wants guidance on pricing and marketplace balance for the first year.
-
-Your objective: Develop recommendations to improve marketplace performance and overall profitability.
-
-The client has additional data and context, but will only provide it in response to thoughtful, targeted questions. Ask good questions to uncover the key information you will need.
-"""
-
 DONT_DUMP_PATTERNS = [
     r"give (me|us) (all|everything)",
     r"what.*all.*information",
@@ -109,9 +85,6 @@ def looks_like_dump_request(text: str) -> bool:
     lower = text.lower()
     return any(re.search(p, lower) for p in DONT_DUMP_PATTERNS)
 
-# ----------------------
-# Quota store (SQLite)
-# ----------------------
 DB_PATH = "usage.db"
 def db_init():
     conn = sqlite3.connect(DB_PATH)
@@ -131,9 +104,6 @@ def db_inc_count(code: str, date: str, inc: int = 1):
         cur.execute("INSERT INTO usage (code, date, count) VALUES (?, ?, ?)", (code, date, inc))
     conn.commit(); conn.close()
 
-# ----------------------
-# Helpers
-# ----------------------
 def render_counters(remaining_session: int, max_requests: int, daily_remaining: int | None = None):
     used = max_requests - remaining_session
     pct = 0 if max_requests == 0 else int(100 * used / max_requests)
@@ -146,7 +116,6 @@ def render_counters(remaining_session: int, max_requests: int, daily_remaining: 
 def call_openai_chat(messages: List[Dict[str, str]], model_name: str, temperature: float) -> str:
     if client is None:
         return "No OpenAI API key configured. Add OPENAI_API_KEY in Streamlit Secrets."
-    # Trim history
     sys = None; trimmed = []
     for m in messages:
         if m["role"] == "system":
@@ -155,16 +124,16 @@ def call_openai_chat(messages: List[Dict[str, str]], model_name: str, temperatur
             trimmed.append(m)
     trimmed = trimmed[-MAX_CONTEXT_MESSAGES:]
     convo = [sys] + trimmed if sys else trimmed
-    resp = client.chat.completions.create(model=model_name, messages=convo, temperature=temperature)
+    resp = client.chat.completions.create(
+        model=(model_name if model_name in ["gpt-4o-mini", "gpt-4.1-mini", "gpt-4o"] else "gpt-4o-mini"),
+        messages=convo,
+        temperature=temperature
+    )
     return resp.choices[0].message.content
 
-# ----------------------
-# UI
-# ----------------------
 st.set_page_config(page_title=APP_TITLE, layout="centered")
 st.title(APP_TITLE)
 
-# Access control
 codes = {}
 if CODES_JSON:
     try:
@@ -193,22 +162,18 @@ else:
             st.info("This app requires an access code.")
             st.stop()
 
-# Intro
 st.markdown(INTRO_MD)
 
-# Sidebar
 with st.sidebar:
     st.subheader("Settings")
     model = st.selectbox("Model", [MODEL_DEFAULT, "gpt-4o", "gpt-4.1-mini"], index=0)
     temperature = st.slider("Temperature", min_value=0.0, max_value=1.0, value=TEMPERATURE_DEFAULT, step=0.05)
     st.markdown("---")
-    st.write("Session controls")
     if st.button("Reset conversation", type="primary", use_container_width=True):
         st.session_state.clear(); st.experimental_rerun()
     st.markdown("---")
     st.caption("Ask targeted, decision-relevant questions.")
 
-# State
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "system", "content": SYSTEM_PROMPT}]
 if "request_count" not in st.session_state:
@@ -216,8 +181,6 @@ if "request_count" not in st.session_state:
 if "last_time" not in st.session_state:
     st.session_state["last_time"] = 0.0
 
-
-# Input handling FIRST
 disabled_input = (st.session_state["request_count"] >= MAX_REQUESTS) or (per_student_mode and remaining_total is not None and remaining_total <= 0)
 user_text = st.chat_input("Ask your client a question...", disabled=disabled_input)
 
@@ -226,11 +189,11 @@ if user_text:
     if now - st.session_state["last_time"] < MIN_SECONDS_BETWEEN_CALLS:
         st.session_state["messages"].append({"role": "assistant", "content": "Please wait a few seconds between questions."})
     elif looks_like_dump_request(user_text):
-        guard = ("I cannot share everything at once. Where should we start: pricing levers, supply (drivers), demand (riders), match dynamics, or churn/CAC?")
+        guard = "I cannot share everything at once. Try focusing on pricing, drivers, riders, or match rates."
         st.session_state["messages"].append({"role": "user", "content": user_text})
         st.session_state["messages"].append({"role": "assistant", "content": guard})
     elif st.session_state["request_count"] >= MAX_REQUESTS:
-        st.session_state["messages"].append({"role": "assistant", "content": "You have reached your session limit. Use Reset conversation to start a new one."})
+        st.session_state["messages"].append({"role": "assistant", "content": "You have reached your session limit. Use Reset conversation to start over."})
     elif per_student_mode and remaining_total is not None and remaining_total <= 0:
         st.session_state["messages"].append({"role": "assistant", "content": "You have reached your daily total. Please try again tomorrow or contact your instructor."})
     else:
@@ -242,14 +205,15 @@ if user_text:
         if per_student_mode and remaining_total is not None:
             db_inc_count(entered, today)
 
-# Render full history after processing input
+def normalize_text(text: str) -> str:
+    return unicodedata.normalize("NFKC", text)
+
 for msg in st.session_state["messages"]:
     if msg["role"] == "system":
         continue
     with st.chat_message("user" if msg["role"] == "user" else "assistant"):
-        st.markdown(msg["content"])
+        st.markdown(normalize_text(msg["content"]))
 
-# Bottom counters
 remaining_session_bottom = max(0, MAX_REQUESTS - st.session_state["request_count"])
 render_counters(remaining_session_bottom, MAX_REQUESTS, daily_remaining=remaining_total if per_student_mode else None)
 
