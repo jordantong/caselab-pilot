@@ -26,7 +26,7 @@ from openai import OpenAI
 # Config
 # ----------------------
 APP_TITLE = "Wisconsin Case Lab"
-MODEL_DEFAULT = "gpt-5-mini"
+MODEL_DEFAULT = "gpt-4o-mini"
 MAX_CONTEXT_MESSAGES = 30
 TEMPERATURE_DEFAULT = 0.2
 MAX_REQUESTS = 10  # session cap
