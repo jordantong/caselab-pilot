@@ -1,6 +1,6 @@
-# 📋 Clipboard Client Chat (a.k.a. “Case-y”)
+# 📋 Wisconsin Case Lab
 
-**Clipboard Client Chat** is an interactive Streamlit chatbot designed for business students to practice consulting-style problem solving.  
+**Wisconsin Case Lab** is an interactive Streamlit chatbot designed for business students to practice consulting-style problem solving.  
 It simulates a **client** (like a product manager) who reveals information only when asked targeted, relevant questions.  
 The case content is modeled after a marketplace pricing scenario — similar to Lyft’s driver/rider economics.
 
