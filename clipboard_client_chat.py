@@ -24,7 +24,7 @@ INTRO_MD = """
 ### Case Overview (Read First)
 You are consulting for a start-up ride-sharing company called Wisk, which operates a two-sided marketplace similar to ride-sharing platforms much like Lyft or Uber. 
 
-The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders $25 per trip, and drivers earn $19 for the trip.
+The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders \$25 per trip, and drivers earn \$19 for the trip.
 
 The client has additional data, context, and clarifications, but will only provide it in response to thoughtful, targeted questions. Ask good questions to uncover the key information you will need.
 """
@@ -36,23 +36,23 @@ Wisk is a start-up ride-sharing company, which operates a two-sided marketplace 
 The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders $25 per trip, and drivers earn $19 for the trip.
 
 More context (Information not initially given to the students):
-When Wisk launched at $25 to rider, $19 to driver, only about 60 of 100 ride requests found a driver. Wisk ran some experiments (details below) to help determine how changing the $19 will likely affect the match rate.
+When Wisk launched at \$25 to rider, \$19 to driver, only about 60 of 100 ride requests found a driver. Wisk ran some experiments (details below) to help determine how changing the $19 will likely affect the match rate.
 
 Wisk also has estimated various cost parameters (details below) regarding the economics for drivers and riders.
 
 Problem focus/Main decision:
-Wisk wants to focus just on the decision of how much to pay the drivers for this trip (i.e., should it be more or less than $19). They do not want to consider changes to the charge for riders (the $25 per trip).
+Wisk wants to focus just on the decision of how much to pay the drivers for this trip (i.e., should it be more or less than \$19). They do not want to consider changes to the charge for riders (the \$25 per trip).
 
 Objective:
 Wisk wants to use the objective of trying to maximize the company’s net revenue (the difference between the amount
 riders pay and the amount Lyft pays out to drivers) for this route (between the airport and downtown) in Toledo for the next 12 months.
 
 Drivers:
-- Customer acquisition cost (CAC) of a new driver is between $400 - $600. CAC is sensitive to the rate of acquisition since channels are only so deep.
+- Customer acquisition cost (CAC) of a new driver is between \$400 - \$600. CAC is sensitive to the rate of acquisition since channels are only so deep.
 - At the prevailing wage, drivers have a 5% monthly churn rate and complete 100 rides / month
 
 Riders:
-- CAC of a new rider is $10 to $20 (similar to driver CAC it’s sensitive to the rate of acquisition, since existing marketing channels are only so deep)
+- CAC of a new rider is \$10 to \$20 (similar to driver CAC it’s sensitive to the rate of acquisition, since existing marketing channels are only so deep)
 - Each rider requests about 1 ride per month on average.
 - Riders who do not experience a failed to find driver event churn at 10 percent monthly.
 - Riders who experience one or more failed to find driver events churn at 33 percent monthly.
