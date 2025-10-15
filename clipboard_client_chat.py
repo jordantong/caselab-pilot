@@ -22,39 +22,47 @@ client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 INTRO_MD = """
 ### Case Overview (Read First)
-You are consulting for a startup called Clipboard, which operates a two-sided marketplace similar to ride-sharing platforms. The company is launching a new city and wants guidance on pricing and marketplace balance for the first year.
+You are consulting for a start-up ride-sharing company called Wisk, which operates a two-sided marketplace similar to ride-sharing platforms much like Lyft or Uber. 
 
-Your objective: Develop recommendations to improve marketplace performance and overall profitability.
+The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders $25 per trip, and drivers earn $19 for the trip.
 
-The client has additional data and context, but will only provide it in response to thoughtful, targeted questions. Ask good questions to uncover the key information you will need.
+The client has additional data, context, and clarifications, but will only provide it in response to thoughtful, targeted questions. Ask good questions to uncover the key information you will need.
 """
 
 CASE_INFO = """
-Clipboard's marketplace users book a transaction in the future, similar to ride scheduling.
-Pretend you are the pricing product manager for Lyft's ride-scheduling feature, launching Toledo, Ohio.
-Prevailing rider price for airport <-> downtown (one way) is $25. Prevailing driver wage is $19.
-You launch at $25 to rider, $19 to driver. Only about 60 of 100 ride requests find a driver.
-Focus on this single route for the exercise.
+Context (Information also given to the students):
+Wisk is a start-up ride-sharing company, which operates a two-sided marketplace similar to ride-sharing platforms much like Lyft or Uber. 
+
+The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders $25 per trip, and drivers earn $19 for the trip.
+
+More context (Information not initially given to the students):
+When Wisk launched at $25 to rider, $19 to driver, only about 60 of 100 ride requests found a driver. Wisk ran some experiments (details below) to help determine how changing the $19 will likely affect the match rate.
+
+Wisk also has estimated various cost parameters (details below) regarding the economics for drivers and riders.
+
+Problem focus/Main decision:
+Wisk wants to focus just on the decision of how much to pay the drivers for this trip (i.e., should it be more or less than $19). They do not want to consider changes to the charge for riders (the $25 per trip).
+
+Objective:
+Wisk wants to use the objective of trying to maximize the company’s net revenue (the difference between the amount
+riders pay and the amount Lyft pays out to drivers) for this route (between the airport and downtown) in Toledo for the next 12 months.
 
 Drivers:
-- CAC of a new driver is $400 to $600; CAC increases with faster acquisition due to shallow channels.
-- At the prevailing wage, drivers churn 5 percent monthly and complete 100 rides per month.
+- Customer acquisition cost (CAC) of a new driver is between $400 - $600. CAC is sensitive to the rate of acquisition since channels are only so deep.
+- At the prevailing wage, drivers have a 5% monthly churn rate and complete 100 rides / month
 
 Riders:
-- CAC of a new rider is $10 to $20; also sensitive to acquisition rate.
-- Each rider requests 1 ride per month on average.
+- CAC of a new rider is $10 to $20 (similar to driver CAC it’s sensitive to the rate of acquisition, since existing marketing channels are only so deep)
+- Each rider requests about 1 ride per month on average.
 - Riders who do not experience a failed to find driver event churn at 10 percent monthly.
 - Riders who experience one or more failed to find driver events churn at 33 percent monthly.
 
 Experiment:
-Reducing Lyft's take from $6 per ride to $3 per ride increased match rate from 60 percent to about 93 percent.
-
-Goal:
-Maximize net revenue (rider payment minus driver payout) for this route over the next 12 months. You cannot charge riders more than $25. The lever is how much you pay drivers per trip (adjusting take rate).
+In a 3-week experiment, reducing Wisk’s take from $6 per ride to $3 per ride increased the match rate from 60 percent to about 93 percent.
 """
 
 SYSTEM_PROMPT = f"""
-You are a realistic product manager (the client) at Clipboard for a consulting-style student case.
+You are a realistic product manager (the client) at Wisk for a consulting-style student case.
 Answer questions only as needed, revealing details from the official case material when the student asks relevant, specific questions.
 Do not reveal all information at once. Do not invent facts beyond CASE_INFO.
 If the student asks to give all info or similar, refuse and coach them to ask specific, decision-relevant questions.
