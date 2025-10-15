@@ -33,10 +33,10 @@ CASE_INFO = """
 Context (Information also given to the students):
 Wisk is a start-up ride-sharing company, which operates a two-sided marketplace similar to ride-sharing platforms much like Lyft or Uber. 
 
-The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders $25 per trip, and drivers earn $19 for the trip.
+The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders \$25 per trip, and drivers earn \$19 for the trip.
 
 More context (Information not initially given to the students):
-When Wisk launched at \$25 to rider, \$19 to driver, only about 60 of 100 ride requests found a driver. Wisk ran some experiments (details below) to help determine how changing the $19 will likely affect the match rate.
+When Wisk launched at \$25 to rider, \$19 to driver, only about 60 of 100 ride requests found a driver. Wisk ran some experiments (details below) to help determine how changing the \$19 will likely affect the match rate.
 
 Wisk also has estimated various cost parameters (details below) regarding the economics for drivers and riders.
 
@@ -58,7 +58,7 @@ Riders:
 - Riders who experience one or more failed to find driver events churn at 33 percent monthly.
 
 Experiment:
-In a 3-week experiment, reducing Wisk’s take from $6 per ride to $3 per ride increased the match rate from 60 percent to about 93 percent.
+In a 3-week experiment, reducing Wisk’s take from \$6 per ride to \$3 per ride increased the match rate from 60 percent to about 93 percent.
 """
 
 SYSTEM_PROMPT = f"""
