@@ -39,7 +39,7 @@ I’m here to answer **clarifying questions** about what and provide context or 
 
 You are consulting for a start-up ride-sharing company called Wisk, which operates a two-sided marketplace similar to ride-sharing platforms much like Lyft or Uber. 
 
-The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders \$25 per trip, and drivers earn \$19 for the trip.
+The company just launched in a new city (Toledo, Ohio) and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders \$25 per trip, and drivers earn \$19 for the trip.
 
 The client has additional data, context, and clarifications, but will only provide it in response to thoughtful, targeted questions. Ask good questions to uncover the key information you will need.
 """
