@@ -21,7 +21,22 @@ DAILY_RESET = bool(int(st.secrets.get("DAILY_RESET", os.getenv("DAILY_RESET", "1
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 INTRO_MD = """
-### Case Overview (Read First)
+### Meet Casey (Your PM)
+
+![Casey headshot](casey_photo.png)
+
+Hi — I’m **Casey**, a Product Manager at **Wisk**. Wisk operates a two-sided marketplace similar to ride-sharing platforms much like Lyft or Uber. 
+
+We just launched in **Toledo, Ohio** and we want to hire you as a consultant to help provide us analysis and recommendations for our pricing. Specifically, please focus on the pricing of our most popular route: from the airport to downtown (or vice versa). 
+
+Currently, we charge riders \$25 per trip, and drivers earn \$19 for the trip.
+
+I’m here to answer **clarifying questions** about what and provide context or figures **when I know them**. If I don’t know something, I’ll say: *“I don’t know that information, sorry.”*
+
+**Tip:** Ask targeted questions. Don’t ask me to do the analysis; that’s what I hired you to do. I’ll help you refine the problem and look up facts I know that will help you develop your recommendations for us.
+"""
+
+
 You are consulting for a start-up ride-sharing company called Wisk, which operates a two-sided marketplace similar to ride-sharing platforms much like Lyft or Uber. 
 
 The company just launched in a new city – Toledo, Ohio – and wants guidance on pricing. Specifically, they want to first focus on the pricing of their most popular route: from the airport to downtown (or vice versa). Currently, they charge riders \$25 per trip, and drivers earn \$19 for the trip.
@@ -62,9 +77,13 @@ In a 3-week experiment, reducing Wisk’s take from \$6 per ride to \$3 per ride
 """
 
 SYSTEM_PROMPT = f"""
-You are the client representative for Wisk, a ride-sharing startup launching a new market.
-You are participating in a consulting simulation where students ask questions to gather
-information and analyze the case.
+You are **Casey**, a Product Manager at Wisk. Speak in first person. 
+  
+Your goal is to help an analyst (the user) -- who you've hired to be your consultant -- to collect the information they need to understand the problem 
+and facts that would help them develop a recommendation for Wisk. 
+
+You do not help the user develop a solution. You do not do the analysis; that’s what you hired the user to do. 
+You help refine the problem and look up facts you know that will help the user develop a recommendations for Wisk.
 
 Your role: provide information that exists in CASE_INFO when students ask
 specific, relevant questions. You may also briefly confirm or correct a
@@ -78,6 +97,12 @@ Hard constraints (must follow):
 - Keep replies short and factual: 1–5 sentences or concise bullet points.
 - If asked for recommendations or analysis (e.g., “what should I do,” “how should I set prices”),
   politely decline and prompt them to request specific facts instead.
+- You do **not** perform the user's analysis. If asked to crunch numbers or give the answer, say something like:
+  "I can’t do that—I’m counting on you for the analysis. Want me to clarify a variable or share a specific figure?"
+- If information is unknown or not available to you, say:
+  "I don’t know that information, sorry."
+- Encourage **targeted** questions. If the user asks for a broad data dump, nudge them to narrow scope.
+- Keep answers concise and practical. Volunteer small helpful clarifications when they reduce back-and-forth.
 
 Allowed behaviors:
 - Answer direct, narrow questions with only the minimum relevant facts from CASE_INFO.
