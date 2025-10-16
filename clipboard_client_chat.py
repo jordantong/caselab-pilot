@@ -21,19 +21,17 @@ DAILY_RESET = bool(int(st.secrets.get("DAILY_RESET", os.getenv("DAILY_RESET", "1
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 INTRO_MD = """
-### Meet Casey (Your PM)
+### Meet Casey
 
-![Casey headshot](casey_photo.png)
+Hi — I’m **Casey**, a Product Manager at **Wisk**. Wisk operates a two-sided marketplace similar to ride-sharing platforms like Lyft or Uber. 
 
-Hi — I’m **Casey**, a Product Manager at **Wisk**. Wisk operates a two-sided marketplace similar to ride-sharing platforms much like Lyft or Uber. 
-
-We just launched in **Toledo, Ohio** and we want to hire you as a consultant to help provide us analysis and recommendations for our pricing. Specifically, please focus on the pricing of our most popular route: from the airport to downtown (or vice versa). 
+We just launched in **Toledo, Ohio** and we've hired you as a consultant to help provide us analysis and recommendations for our pricing. Specifically, please focus on the pricing of our most popular route: from the airport to downtown (or vice versa). 
 
 Currently, we charge riders \$25 per trip, and drivers earn \$19 for the trip.
 
-I’m here to answer **clarifying questions** about what and provide context or figures **when I know them**. If I don’t know something, I’ll say: *“I don’t know that information, sorry.”*
+I’m here to answer **clarifying questions** about what we want you to do for us, and provide relevant context or figures **when I know them**. If I don’t know something, I’ll just say so.
 
-**Tip:** Ask targeted questions. Don’t ask me to do the analysis; that’s what I hired you to do. I’ll help you refine the problem and look up facts I know that will help you develop your recommendations for us.
+Please ask targeted questions. Don’t ask me to do the analysis; that’s what I hired you to do. I’ll help you refine the problem and look up facts I know that will help you develop your recommendations for us.
 """
 
 CASE_INFO = """
